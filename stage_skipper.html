@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dakar Desert Rally - Stage Skipper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f57c00;
+            --primary-hover: #e65100;
+            --bg-color: #0f1115;
+            --panel-bg: rgba(25, 28, 36, 0.7);
+            --text-main: #ffffff;
+            --text-muted: #a0aabf;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #2c1b0d, #0f1115 60%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            padding: 2rem;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(90deg, #ffb74d, #f57c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            flex: 1;
+            border: 2px dashed var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .upload-area:hover, .upload-area.active {
+            border-color: var(--primary);
+            background: rgba(245, 124, 0, 0.05);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+
+        .stage-list {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .stage-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stage-item input {
+            margin-right: 15px;
+            accent-color: var(--primary);
+            width: 18px; height: 18px;
+        }
+
+        .btn {
+            display: none;
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--primary);
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stage Skipper</h1>
+            <p>Inject completed stages from a 100% Save</p>
+        </div>
+
+        <div class="glass-panel">
+            <div class="upload-row">
+                <div class="upload-area" id="areaTarget">
+                    <h4>Target Save</h4>
+                    <p style="font-size: 0.8rem; color: #aaa;">Your current 0% .sav file</p>
+                    <input type="file" id="fileTarget" accept=".sav">
+                </div>
+                <div class="upload-area" id="areaSource">
+                    <h4>Source 100% Save</h4>
+                    <p style="font-size: 0.8rem; color: #aaa;">The downloaded 100% .sav</p>
+                    <input type="file" id="fileSource" accept=".sav">
+                </div>
+            </div>
+
+            <div class="status" id="statusMessage">Please select both save files.</div>
+            
+            <button class="btn" id="btnInject" onclick="transferStages()">Transfer 100% Stages</button>
+        </div>
+    </div>
+
+    <script>
+        let targetBuffer = null;
+        let sourceBuffer = null;
+        let targetFileName = "DakarDRSaveSlot.sav";
+
+        document.getElementById('fileTarget').addEventListener('change', (e) => loadFile(e, 'target'));
+        document.getElementById('fileSource').addEventListener('change', (e) => loadFile(e, 'source'));
+
+        function loadFile(event, type) {
+            const file = event.target.files[0];
+            if(!file) return;
+            
+            if(type === 'target') targetFileName = file.name;
+            const area = type === 'target' ? document.getElementById('areaTarget') : document.getElementById('areaSource');
+            area.classList.add('active');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if(type === 'target') targetBuffer = e.target.result;
+                else sourceBuffer = e.target.result;
+                checkReady();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function checkReady() {
+            if(targetBuffer && sourceBuffer) {
+                document.getElementById('statusMessage').textContent = "Files loaded! Ready to transfer progression.";
+                document.getElementById('btnInject').style.display = 'block';
+            }
+        }
+
+        function findPropertyBlock(buffer, propertyName) {
+            const bytes = new Uint8Array(buffer);
+            const propNameStr = propertyName + '\0';
+            const encoder = new TextEncoder();
+            const propNameBytes = new Uint8Array(propNameStr.length + 4);
+            new DataView(propNameBytes.buffer).setUint32(0, propNameStr.length, true);
+            propNameBytes.set(encoder.encode(propNameStr), 4);
+            propNameBytes[propNameBytes.length - 1] = 0;
+
+            for (let i = 0; i < bytes.length - propNameBytes.length; i++) {
+                let match = true;
+                for (let j = 0; j < propNameBytes.length; j++) {
+                    if (bytes[i + j] !== propNameBytes[j]) { match = false; break; }
+                }
+                if (match) {
+                    let offset = i + propNameBytes.length;
+                    const dataview = new DataView(buffer);
+                    
+                    // Check if property type is ArrayProperty
+                    const typeLen = dataview.getUint32(offset, true);
+                    offset += 4;
+                    const typeStr = new TextDecoder().decode(bytes.slice(offset, offset + typeLen - 1));
+                    offset += typeLen;
+
+                    if (typeStr === 'ArrayProperty') {
+                        const payloadSize = Number(dataview.getBigUint64(offset, true));
+                        offset += 8;
+                        
+                        // ArrayProperty inner type
+                        const innerTypeLen = dataview.getUint32(offset, true);
+                        offset += 4 + innerTypeLen;
+                        
+                        offset += 1; // 1 byte padding (0x00)
+                        
+                        const blockEnd = offset + payloadSize;
+                        return { start: i, end: blockEnd };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function transferStages() {
+            try {
+                document.getElementById('statusMessage').textContent = "Processing transfer...";
+
+                // Find CompletedEvents in Source
+                const sourceBlock = findPropertyBlock(sourceBuffer, "CompletedEvents");
+                if (!sourceBlock) throw new Error("Could not find CompletedEvents in the 100% Save file.");
+
+                // Find CompletedEvents in Target
+                const targetBlock = findPropertyBlock(targetBuffer, "CompletedEvents");
+                if (!targetBlock) throw new Error("Could not find CompletedEvents in your Target Save file. (Try playing at least one event first).");
+
+                // Slice buffers
+                const sourceBytes = new Uint8Array(sourceBuffer);
+                const targetBytes = new Uint8Array(targetBuffer);
+
+                const extractedData = sourceBytes.slice(sourceBlock.start, sourceBlock.end);
+                const part1 = targetBytes.slice(0, targetBlock.start);
+                const part2 = targetBytes.slice(targetBlock.end);
+
+                // Combine
+                const newBuffer = new Uint8Array(part1.length + extractedData.length + part2.length);
+                newBuffer.set(part1, 0);
+                newBuffer.set(extractedData, part1.length);
+                newBuffer.set(part2, part1.length + extractedData.length);
+
+                document.getElementById('statusMessage').textContent = "Transfer Complete! Downloading your new save file...";
+                
+                const blob = new Blob([newBuffer], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = targetFileName.replace('.sav', '_100Percent.sav');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch(e) {
+                document.getElementById('statusMessage').textContent = "Error: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
