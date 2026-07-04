@@ -1,6 +1,12 @@
 <div align="center">
   <h1>🏜️ Dakar Desert Rally - Save Editor & DLC Unlocker</h1>
   <p>A simple web-based tool to modify player stats and unlock DLCs directly via binary GVAS save files.</p>
+  
+  <br />
+  <a href="https://github.com/Bayu5aputra/Dakar-Desert-Rally-Mod-Save/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Bayu5aputra/Dakar-Desert-Rally-Mod-Save?style=for-the-badge&color=success&label=DOWNLOAD%20LATEST%20RELEASE" alt="Download Release" />
+  </a>
+  <br />
 </div>
 
 ---
