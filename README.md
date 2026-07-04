@@ -15,12 +15,14 @@
 
 - **Modify Player Stats**: Change your Player Level (up to 999), Dakar Points (Money), and Total Experience Points.
 - **DLC Unlocker**: Seamlessly inject unlocked DLC data directly into your save file.
+- **Stage Skipper (Beta)**: Instantly transfer all completed events/stages from a 100% save file into your own save file.
 - **100% Local & Safe**: No software installation required. Runs entirely locally in your web browser (Client-side only, no data is uploaded to any server).
 - **Epic Games Store Support**: Includes **ScreamAPI** to bypass DLC entitlement checks for EGS players.
 
 ## 📂 Repository Contents
 
 - `index.html` - The main Web-based Save Editor application.
+- `stage_skipper.html` - The Beta tool used to transfer 100% progression between save files.
 - `ScreamAPI-v4.0.0/` & `.zip` - The tool required to unlock DLCs (for Epic Games Store users).
 - `DakarDRSave2Slot_...sav` - A backup/example save file.
 
@@ -47,6 +49,25 @@ Double-click `index.html` to open it in any modern web browser (Chrome, Firefox,
 - Click the **"Save Changes & Download .SAV"** button.
 - **⚠️ Important:** Make a backup of your original `.sav` file before overwriting!
 - Replace your original save file in the `SaveGames` folder with the newly downloaded `.sav` file.
+
+---
+
+## ⏭️ How to Use the Stage Skipper (Beta)
+
+If you want to skip the grind and instantly unlock all stages, you can use the new Stage Skipper tool to merge a 100% completed save into your own.
+
+### 1. Requirements
+- Your current 0% (or partially completed) save file (`DakarDRSaveSlot.sav`).
+- A 100% completed save file downloaded from the internet.
+
+### 2. Open the Skipper
+- Double-click `stage_skipper.html` to open it in your browser.
+
+### 3. Transfer Progression
+- Click the **Target Save** box and upload your personal save file.
+- Click the **Source 100% Save** box and upload the 100% completed save file.
+- Click **"Transfer 100% Stages"**.
+- A new file named `DakarDRSaveSlot_100Percent.sav` will be downloaded. Rename this to match your slot (e.g., `DakarDRSave1Slot.sav`) and place it in your `SaveGames` folder.
 
 ---
 
