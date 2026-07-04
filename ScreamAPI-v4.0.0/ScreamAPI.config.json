@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/acidicoala/ScreamAPI/refs/tags/v4.0.0/res/ScreamAPI.schema.json",
+  "$version": 3,
+  "logging": true,
+  "log_eos": false,
+  "block_metrics": false,
+  "namespace_id": "",
+  "default_dlc_status": "unlocked",
+  "override_dlc_status": {},
+  "extra_graphql_endpoints": [],
+  "extra_entitlements": {}
+}

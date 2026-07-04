@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dakar Desert Rally - SAV Editor (GVAS + DLC)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f57c00;
+            --primary-hover: #e65100;
+            --bg-color: #0f1115;
+            --panel-bg: rgba(25, 28, 36, 0.7);
+            --text-main: #ffffff;
+            --text-muted: #a0aabf;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #2c1b0d, #0f1115 60%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            padding: 2rem;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(90deg, #ffb74d, #f57c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--glass-border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(245, 124, 0, 0.05);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .editor-form {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input[type="number"], .form-group input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .dlc-group {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .dlc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .dlc-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: #ddd;
+        }
+
+        .dlc-item input {
+            margin-right: 10px;
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -10px var(--primary);
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--primary);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .status-success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        .status-error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Dakar SAV Editor</h1>
+            <p>Edit Stats & DLCs (Binary GVAS)</p>
+        </div>
+
+        <div class="glass-panel">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>Drag & Drop your .sav file here</h3>
+                <p>Works directly with binary GVAS saves</p>
+                <input type="file" id="fileInput" accept=".sav">
+            </div>
+            
+            <div class="loading" id="loadingIndicator">Parsing binary save file...</div>
+            <div id="statusMessage" class="status-message"></div>
+
+            <div class="editor-form" id="editorForm">
+                <div class="form-group">
+                    <label>Player Level</label>
+                    <input type="number" id="PlayerLevel" min="1" max="999">
+                </div>
+                
+                <div class="form-group">
+                    <label>Dakar Points (DP/Money)</label>
+                    <input type="number" id="DakarPoints" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>Total Experience Points</label>
+                    <input type="number" id="TotalExperiencePoints" min="0">
+                </div>
+
+                <div class="form-group dlc-group">
+                    <label>Unlock DLCs</label>
+                    <div class="dlc-grid" id="dlcGrid">
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::ExtendedSaudiArabia"> Extended Saudi Arabia</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::SnowRunnerPack1"> SnowRunner Pack 1</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::SnowRunnerPack2"> SnowRunner Pack 2</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::USAMap"> USA Map Tour</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::NextGenVehiclePack"> Next Gen / Hybrid Pack</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::SeasonPass"> Season Pass</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::Etron"> Audi RS Q e-tron</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::ClassicVehiclePack1"> Classic Vehicle Pack 1</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::ClassicVehiclePack2"> Classic Vehicle Pack 2</label>
+                        <label class="dlc-item"><input type="checkbox" class="dlc-cb" value="EDKDLCType::ClassicVehiclePack3"> Classic Vehicle Pack 3</label>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="downloadSave()">Save Changes & Download .SAV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSaveBuffer = null;
+        let originalFileName = "DakarDRSaveSlot.sav";
+        
+        let offsets = {
+            PlayerLevel: -1,
+            DakarPoints: -1,
+            TotalExperiencePoints: -1,
+            DLCList: -1
+        };
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const editorForm = document.getElementById('editorForm');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusMessage = document.getElementById('statusMessage');
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+        
+        function showStatus(msg, isError) {
+            statusMessage.textContent = msg;
+            statusMessage.className = "status-message " + (isError ? "status-error" : "status-success");
+            statusMessage.style.display = "block";
+        }
+
+        function findIntPropertyOffset(buffer, propName) {
+            const propNameBytes = new TextEncoder().encode(propName + '\0');
+            const bytes = new Uint8Array(buffer);
+            for (let i = bytes.length - propNameBytes.length; i >= 0; i--) {
+                let match = true;
+                for (let j = 0; j < propNameBytes.length; j++) {
+                    if (bytes[i + j] !== propNameBytes[j]) { match = false; break; }
+                }
+                if (match) {
+                    let offset = i + propNameBytes.length;
+                    const dataview = new DataView(buffer);
+                    if (dataview.getUint32(offset, true) === 12) {
+                        offset += 4;
+                        const typeStr = new TextDecoder().decode(bytes.slice(offset, offset + 11));
+                        if (typeStr === 'IntProperty') {
+                            offset += 12; // Length of "IntProperty\0"
+                            offset += 9; // Skip payload size (8) + terminator (1)
+                            return offset; 
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+
+        function findDLCOffset(buffer) {
+            // Hex for \x11\x00\x00\x00InstalledDLCList\x00
+            const sig = new Uint8Array([0x11, 0x00, 0x00, 0x00, 73, 110, 115, 116, 97, 108, 108, 101, 100, 68, 76, 67, 76, 105, 115, 116, 0]);
+            const bytes = new Uint8Array(buffer);
+            for (let i = bytes.length - sig.length; i >= 0; i--) {
+                let match = true;
+                for (let j = 0; j < sig.length; j++) {
+                    if (bytes[i + j] !== sig[j]) { match = false; break; }
+                }
+                if (match) return i;
+            }
+            return -1;
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            originalFileName = file.name;
+            statusMessage.style.display = "none";
+            editorForm.style.display = 'none';
+            loadingIndicator.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                setTimeout(() => {
+                    try {
+                        currentSaveBuffer = e.target.result;
+                        const header = new TextDecoder().decode(new Uint8Array(currentSaveBuffer, 0, 4));
+                        if (header !== "GVAS") throw new Error("Invalid format: 'GVAS' header not found.");
+
+                        offsets.PlayerLevel = findIntPropertyOffset(currentSaveBuffer, "PlayerLevel");
+                        offsets.DakarPoints = findIntPropertyOffset(currentSaveBuffer, "DakarPoints");
+                        offsets.TotalExperiencePoints = findIntPropertyOffset(currentSaveBuffer, "TotalExperiencePoints");
+                        offsets.DLCList = findDLCOffset(currentSaveBuffer);
+                        
+                        populateForm();
+                        loadingIndicator.style.display = 'none';
+                        editorForm.style.display = 'block';
+                        uploadArea.style.display = 'none';
+                        showStatus("Binary save file loaded successfully!", false);
+                    } catch (err) {
+                        loadingIndicator.style.display = 'none';
+                        showStatus(err.message, true);
+                    }
+                }, 50);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function populateForm() {
+            if(!currentSaveBuffer) return;
+            const dataview = new DataView(currentSaveBuffer);
+            
+            ['PlayerLevel', 'DakarPoints', 'TotalExperiencePoints'].forEach(id => {
+                const input = document.getElementById(id);
+                if (offsets[id] !== -1) {
+                    input.value = dataview.getInt32(offsets[id], true);
+                    input.disabled = false;
+                } else {
+                    input.disabled = true;
+                }
+            });
+
+            // Read DLCs if present
+            document.querySelectorAll('.dlc-cb').forEach(cb => cb.checked = false);
+            if (offsets.DLCList !== -1) {
+                const bytes = new Uint8Array(currentSaveBuffer);
+                // element count is at offset + 21 (name) + 16 (type) + 8 (size) + 17 (innertype) + 1 (pad) + 4 (pad) = + 67
+                let offset = offsets.DLCList + 67;
+                let count = dataview.getUint32(offset, true);
+                offset += 4;
+                
+                for (let i = 0; i < count; i++) {
+                    let len = dataview.getUint32(offset, true);
+                    offset += 4;
+                    let str = new TextDecoder().decode(bytes.slice(offset, offset + len - 1));
+                    offset += len;
+                    
+                    let cb = document.querySelector(`.dlc-cb[value="${str}"]`);
+                    if (cb) cb.checked = true;
+                }
+            }
+        }
+
+        function downloadSave() {
+            if(!currentSaveBuffer) return;
+            
+            try {
+                // We create a copy of the buffer up to the DLC list (or end of valid properties)
+                let cutOffset = offsets.DLCList;
+                if (cutOffset === -1) {
+                    // If no DLC list existed, we cut before the final None\0 terminators
+                    const sig = new Uint8Array([0x05, 0x00, 0x00, 0x00, 78, 111, 110, 101, 0]); // None\0
+                    const bytes = new Uint8Array(currentSaveBuffer);
+                    for (let i = bytes.length - sig.length; i >= 0; i--) {
+                        let match = true;
+                        for (let j = 0; j < sig.length; j++) {
+                            if (bytes[i + j] !== sig[j]) { match = false; break; }
+                        }
+                        if (match) {
+                            cutOffset = i; // Found the last None
+                        }
+                    }
+                }
+                
+                const baseBuffer = currentSaveBuffer.slice(0, cutOffset);
+                const dataview = new DataView(baseBuffer);
+                
+                // Update integers in the base buffer
+                ['PlayerLevel', 'DakarPoints', 'TotalExperiencePoints'].forEach(id => {
+                    if (offsets[id] !== -1 && offsets[id] < cutOffset) {
+                        dataview.setInt32(offsets[id], parseInt(document.getElementById(id).value, 10), true);
+                    }
+                });
+
+                // Build new DLC bytes
+                let dlcNames = [];
+                document.querySelectorAll('.dlc-cb:checked').forEach(cb => dlcNames.push(cb.value));
+
+                let dlcBytes = [];
+                if (dlcNames.length > 0) {
+                    // InstalledDLCList header
+                    dlcBytes.push(...[0x11, 0x00, 0x00, 0x00, 73, 110, 115, 116, 97, 108, 108, 101, 100, 68, 76, 67, 76, 105, 115, 116, 0]);
+                    dlcBytes.push(...[0x0C, 0x00, 0x00, 0x00, 83, 101, 116, 80, 114, 111, 112, 101, 114, 116, 121, 0]);
+
+                    // Calculate payload size (in GVAS, SetProperty payload does NOT include the InnerType string)
+                    // Payload = 4 bytes (pad) + 4 bytes (element count) + size of strings
+                    let payloadSize = 8; 
+                    for (let name of dlcNames) {
+                        payloadSize += 4 + name.length + 1; // 4-byte len + string + null byte
+                    }
+                    dlcBytes.push(payloadSize & 0xFF, (payloadSize >> 8) & 0xFF, (payloadSize >> 16) & 0xFF, (payloadSize >> 24) & 0xFF, 0, 0, 0, 0);
+
+                    // EnumProperty\0 (InnerType)
+                    dlcBytes.push(...[0x0D, 0x00, 0x00, 0x00, 69, 110, 117, 109, 80, 114, 111, 112, 101, 114, 116, 121, 0]);
+                    
+                    // 1 byte property terminator
+                    dlcBytes.push(0x00);
+                    
+                    // Payload starts here!
+                    // 4 bytes padding/index
+                    dlcBytes.push(0x00, 0x00, 0x00, 0x00);
+                    
+                    // Count
+                    dlcBytes.push(dlcNames.length & 0xFF, (dlcNames.length >> 8) & 0xFF, (dlcNames.length >> 16) & 0xFF, (dlcNames.length >> 24) & 0xFF);
+
+                    // Strings
+                    for (let name of dlcNames) {
+                        let len = name.length + 1;
+                        dlcBytes.push(len & 0xFF, (len >> 8) & 0xFF, (len >> 16) & 0xFF, (len >> 24) & 0xFF);
+                        for (let i = 0; i < name.length; i++) dlcBytes.push(name.charCodeAt(i));
+                        dlcBytes.push(0x00);
+                    }
+                }
+
+                // Two None terminators + 4 pad bytes (EOF)
+                dlcBytes.push(...[0x05, 0x00, 0x00, 0x00, 78, 111, 110, 101, 0]);
+                dlcBytes.push(...[0x05, 0x00, 0x00, 0x00, 78, 111, 110, 101, 0]);
+                dlcBytes.push(0x00, 0x00, 0x00, 0x00);
+
+                // Merge base + new DLC footer
+                const finalBuffer = new Uint8Array(baseBuffer.byteLength + dlcBytes.length);
+                finalBuffer.set(new Uint8Array(baseBuffer), 0);
+                finalBuffer.set(new Uint8Array(dlcBytes), baseBuffer.byteLength);
+
+                // FIX: Update the parent SaveData StructProperty size header!
+                // Since we changed the length of the file by adding/removing DLC strings,
+                // we MUST update the total payload size of the SaveData struct, or Unreal Engine rejects the file.
+                const sizeDiff = finalBuffer.byteLength - currentSaveBuffer.byteLength;
+                
+                if (sizeDiff !== 0) {
+                    const saveDataSig = new Uint8Array([0x09, 0x00, 0x00, 0x00, 83, 97, 118, 101, 68, 97, 116, 97, 0, 0x0F, 0x00, 0x00, 0x00, 83, 116, 114, 117, 99, 116, 80, 114, 111, 112, 101, 114, 116, 121, 0]);
+                    for (let i = 0; i < finalBuffer.length - saveDataSig.length; i++) {
+                        let match = true;
+                        for (let j = 0; j < saveDataSig.length; j++) {
+                            if (finalBuffer[i + j] !== saveDataSig[j]) { match = false; break; }
+                        }
+                        if (match) {
+                            const sizeOffset = i + saveDataSig.length;
+                            const dv = new DataView(finalBuffer.buffer);
+                            // Read current size (only first 4 bytes since sizes < 4GB)
+                            const currentSize = dv.getUint32(sizeOffset, true);
+                            // Write new size
+                            dv.setUint32(sizeOffset, currentSize + sizeDiff, true);
+                            break;
+                        }
+                    }
+                }
+                
+                const blob = new Blob([finalBuffer], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalFileName; 
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus("Save file generated with DLC updates!", false);
+            } catch (err) {
+                console.error(err);
+                showStatus("Error generating save file.", true);
+            }
+        }
+    </script>
+</body>
+</html>
